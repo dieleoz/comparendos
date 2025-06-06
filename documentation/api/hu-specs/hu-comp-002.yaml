@@ -1,0 +1,267 @@
+# HU-COMP-002 - Registro de Eventos de Pesaje (Template)
+# filepath: /home/administrador/docker/comparendos/documentation/api/hu-specs/hu-comp-002.yaml
+
+# Estado: ⏳ PENDIENTE
+# Descripción: Registro automático y manual de eventos de pesaje con integración BASCAM
+
+paths:
+  /pesajes:
+    get:
+      tags:
+        - pesajes
+      summary: Listar eventos de pesaje
+      description: |
+        Obtiene una lista de eventos de pesaje registrados en el sistema.
+        
+        ### 🔐 Permisos Requeridos
+        - ADMIN: Acceso completo
+        - OPERADOR: Solo su estación asignada
+        - COORDINADOR: Supervisión multi-estación
+        - AUDITOR: Solo lectura
+        
+        ### ⚖️ Funcionalidades
+        - Filtros por estación, fecha, placa
+        - Integración con WebService BASCAM
+        - Registro manual de contingencia
+        
+      operationId: getPesajes
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - in: query
+          name: id_estacion
+          schema:
+            type: integer
+          description: Filtrar por estación
+        - in: query
+          name: fecha_inicio
+          schema:
+            type: string
+            format: date
+          description: Fecha inicio del rango
+        - in: query
+          name: fecha_fin
+          schema:
+            type: string
+            format: date
+          description: Fecha fin del rango
+        - in: query
+          name: placa
+          schema:
+            type: string
+          description: Filtrar por placa
+      responses:
+        '200':
+          description: Lista de pesajes obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      pesajes:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/EventoPesaje'
+                      pagination:
+                        $ref: '../swagger.yaml#/components/schemas/PaginationResponse'
+
+    post:
+      tags:
+        - pesajes
+      summary: Registrar evento de pesaje
+      description: |
+        Registra un nuevo evento de pesaje en el sistema.
+        
+        ### 📝 Tipos de Registro
+        - **AUTOMATICO**: Desde WebService BASCAM
+        - **MANUAL**: Registro de contingencia por operador
+        
+      operationId: createPesaje
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PesajeCreateRequest'
+      responses:
+        '201':
+          description: Pesaje registrado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/EventoPesaje'
+
+  /pesajes/{id}:
+    get:
+      tags:
+        - pesajes
+      summary: Obtener evento de pesaje específico
+      operationId: getPesajeById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del evento de pesaje
+      responses:
+        '200':
+          description: Evento de pesaje encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/EventoPesajeDetalle'
+
+components:
+  schemas:
+    EventoPesaje:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1001
+        tiquete_numero:
+          type: string
+          example: "NEI-001-2025-001001"
+        placa:
+          type: string
+          example: "ABC123"
+        peso_bruto_kg:
+          type: number
+          example: 32500
+        codigo_bascam:
+          type: string
+          example: "2S2"
+        id_estacion:
+          type: integer
+          example: 1
+        estacion_nombre:
+          type: string
+          example: "Control Norte Neiva"
+        id_bascula:
+          type: integer
+          example: 1
+        fecha_pesaje:
+          type: string
+          format: date-time
+          example: "2025-06-05T10:30:00Z"
+        modo_registro:
+          type: string
+          enum: ["AUTOMATICO", "MANUAL"]
+          example: "AUTOMATICO"
+        operador:
+          type: string
+          example: "Operador Norte Neiva"
+        observaciones:
+          type: string
+          nullable: true
+          example: null
+        estado:
+          type: string
+          enum: ["REGISTRADO", "PROCESADO", "CON_COMPARENDO"]
+          example: "REGISTRADO"
+
+    EventoPesajeDetalle:
+      allOf:
+        - $ref: '#/components/schemas/EventoPesaje'
+        - type: object
+          properties:
+            vehiculo_info:
+              type: object
+              properties:
+                empresa_transporte:
+                  type: string
+                categoria_vehiculo:
+                  type: string
+                peso_permitido_kg:
+                  type: number
+            comparendo_generado:
+              type: object
+              nullable: true
+              properties:
+                numero_comparendo:
+                  type: string
+                fecha_generacion:
+                  type: string
+                  format: date-time
+                estado:
+                  type: string
+
+    PesajeCreateRequest:
+      type: object
+      required:
+        - placa
+        - peso_bruto_kg
+        - codigo_bascam
+        - id_estacion
+        - id_bascula
+      properties:
+        placa:
+          type: string
+          pattern: '^[A-Z]{3}[0-9]{3}$'
+          example: "DEF456"
+        peso_bruto_kg:
+          type: number
+          minimum: 1000
+          maximum: 100000
+          example: 32000
+        codigo_bascam:
+          type: string
+          example: "2S2"
+        id_estacion:
+          type: integer
+          example: 1
+        id_bascula:
+          type: integer
+          example: 1
+        observaciones:
+          type: string
+          nullable: true
+          example: "Registro manual - WebService BASCAM temporalmente fuera de servicio"
+        modo_registro:
+          type: string
+          enum: ["AUTOMATICO", "MANUAL"]
+          default: "MANUAL"
+        id_registro_bascam:
+          type: integer
+          nullable: true
+          description: ID del registro en BASCAM (solo para modo automático)
+
+# Información de la HU
+x-hu-info:
+  id: "HU-COMP-002"
+  title: "Registro de Eventos de Pesaje"
+  status: "PENDIENTE"
+  priority: "ALTA"
+  estimated_completion: "2025-06-15"
+  dependencies: ["HU-COMP-000", "HU-COMP-001"]
+  external_integrations: ["WebService BASCAM"]

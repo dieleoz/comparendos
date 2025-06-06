@@ -1,0 +1,263 @@
+# HU-COMP-001 - Gestión de Vehículos de Carga (Template)
+# filepath: /home/administrador/docker/comparendos/documentation/api/hu-specs/hu-comp-001.yaml
+
+# Estado: ⏳ EN DESARROLLO
+# Descripción: Gestión completa de vehículos de carga con integración BASCAM
+
+paths:
+  /vehiculos:
+    get:
+      tags:
+        - vehiculos
+      summary: Listar vehículos registrados
+      description: |
+        Obtiene una lista paginada de vehículos registrados en el sistema.
+        
+        ### 🔐 Permisos Requeridos
+        - ADMIN: Acceso completo
+        - OPERADOR: Solo vehículos de su estación
+        - COORDINADOR: Acceso de supervisión
+        - AUDITOR: Solo lectura
+        
+        ### 🚚 Funcionalidades
+        - Filtros por placa, empresa, categoría
+        - Búsqueda avanzada
+        - Exportación de datos
+        
+      operationId: getVehiculos
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - in: query
+          name: placa
+          schema:
+            type: string
+          description: Filtrar por placa
+        - in: query
+          name: empresa
+          schema:
+            type: string
+          description: Filtrar por empresa transportadora
+        - in: query
+          name: categoria_id
+          schema:
+            type: integer
+          description: Filtrar por categoría BASCAM
+      responses:
+        '200':
+          description: Lista de vehículos obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      vehiculos:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Vehiculo'
+                      pagination:
+                        $ref: '../swagger.yaml#/components/schemas/PaginationResponse'
+        '401':
+          $ref: '../swagger.yaml#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '../swagger.yaml#/components/responses/ForbiddenError'
+          
+    post:
+      tags:
+        - vehiculos
+      summary: Registrar nuevo vehículo
+      description: |
+        Registra un nuevo vehículo en el sistema con validaciones BASCAM.
+        
+        ### 🔐 Permisos Requeridos
+        - ADMIN: Acceso completo
+        - COORDINADOR: Registro autorizado
+        
+      operationId: createVehiculo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehiculoCreateRequest'
+      responses:
+        '201':
+          description: Vehículo creado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Vehiculo'
+        '400':
+          $ref: '../swagger.yaml#/components/responses/BadRequestError'
+        '401':
+          $ref: '../swagger.yaml#/components/responses/UnauthorizedError'
+        '409':
+          description: Vehículo ya existe
+          content:
+            application/json:
+              schema:
+                $ref: '../swagger.yaml#/components/schemas/ErrorResponse'
+
+  /vehiculos/{placa}:
+    get:
+      tags:
+        - vehiculos
+      summary: Obtener vehículo por placa
+      description: Obtiene la información completa de un vehículo específico
+      operationId: getVehiculoByPlaca
+      parameters:
+        - in: path
+          name: placa
+          required: true
+          schema:
+            type: string
+          description: Placa del vehículo
+      responses:
+        '200':
+          description: Vehículo encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/VehiculoDetalle'
+        '404':
+          description: Vehículo no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '../swagger.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    Vehiculo:
+      type: object
+      properties:
+        placa:
+          type: string
+          example: "ABC123"
+          description: Placa del vehículo
+        codigo_tarjeta:
+          type: string
+          example: "TAG123456"
+          description: Código de tarjeta RFID
+        marca_vehiculo:
+          type: string
+          example: "Volvo"
+        empresa_transporte:
+          type: string
+          example: "Transportes Ejemplo S.A.S"
+        numero_interno:
+          type: string
+          example: "FL-001"
+        color_vehiculo:
+          type: string
+          example: "Blanco"
+        categoria_vehiculo:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 5
+            codigo_bascam:
+              type: string
+              example: "2S2"
+            descripcion:
+              type: string
+              example: "Camión de 2 ejes con semirremolque de 2 ejes"
+        activo:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VehiculoDetalle:
+      allOf:
+        - $ref: '#/components/schemas/Vehiculo'
+        - type: object
+          properties:
+            historial_pesajes:
+              type: array
+              items:
+                type: object
+                properties:
+                  fecha:
+                    type: string
+                    format: date-time
+                  peso_bruto_kg:
+                    type: number
+                  estacion:
+                    type: string
+                  observaciones:
+                    type: string
+
+    VehiculoCreateRequest:
+      type: object
+      required:
+        - placa
+        - categoria_id
+        - empresa_transporte
+      properties:
+        placa:
+          type: string
+          pattern: '^[A-Z]{3}[0-9]{3}$'
+          example: "ABC123"
+        codigo_tarjeta:
+          type: string
+          example: "TAG123456"
+        categoria_id:
+          type: integer
+          example: 5
+        empresa_transporte:
+          type: string
+          example: "Transportes Ejemplo S.A.S"
+        numero_interno:
+          type: string
+          example: "FL-001"
+        marca_vehiculo:
+          type: string
+          example: "Volvo"
+        color_vehiculo:
+          type: string
+          example: "Blanco"
+
+# Información de la HU
+x-hu-info:
+  id: "HU-COMP-001"
+  title: "Gestión de Vehículos de Carga"
+  status: "EN_DESARROLLO"
+  priority: "ALTA"
+  estimated_completion: "2025-06-10"
+  dependencies: ["HU-COMP-000"]
+  test_coverage_target: 95

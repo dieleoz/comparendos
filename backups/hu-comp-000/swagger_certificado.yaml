@@ -1,0 +1,122 @@
+openapi: 3.0.3
+info:
+  title: Sistema de Comparendos - API Principal
+  description: |
+    ## 🚨 Sistema Integral de Gestión de Comparendos
+    
+    API completa para la gestión de comparendos de tránsito con integración de 
+    básculas, control de roles y auditoría completa de operaciones.
+    
+    ### 🏗️ Estado de Certificación
+    - **HU-COMP-000**: ✅ CERTIFICADA Y COMPLETADA (Autenticación y Roles)
+      - 🔐 Sistema de autenticación JWT implementado
+      - 🔑 Roles y permisos configurados
+      - 📝 Documentación actualizada
+      - ✅ Scripts de prueba funcionando
+    - **HU-COMP-001**: ⏳ En Desarrollo (Gestión de Vehículos)
+    - **HU-COMP-002**: ⏳ Pendiente (Registro de Eventos de Pesaje)
+    - **HU-COMP-003**: ⏳ Pendiente (Generación de Comparendos)
+    - **HU-COMP-004**: ⏳ Pendiente (Reportes y Auditoría)
+    
+    ### 🔐 Autenticación
+    La API utiliza JWT (JSON Web Tokens) para la autenticación. Todos los endpoints 
+    requieren autenticación excepto /auth/login y /ping.
+    
+    ### 🎯 Entorno de Desarrollo
+    - **URL Base**: http://localhost:6002/api
+    - **Base de Datos**: PostgreSQL en puerto 5436
+    - **Docker Network**: comparendos-network
+    
+  version: 1.0.0
+  contact:
+    name: Sistema de Comparendos
+    email: admin@comparendos.com
+
+servers:
+  - url: http://localhost:6002/api
+    description: Servidor de Desarrollo
+
+security:
+  - BearerAuth: []
+
+securitySchemes:
+  BearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT
+    description: Token JWT obtenido del endpoint /auth/login
+
+schemas:
+  LoginRequest:
+    type: object
+    required:
+      - email
+      - password
+    properties:
+      email:
+        type: string
+        format: email
+        example: "operador.nn@comparendos.com"
+      password:
+        type: string
+        example: "operador123"
+
+  LoginResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      usuario:
+        type: object
+        properties:
+          id:
+            type: integer
+          email:
+            type: string
+          rol:
+            type: string
+          nombre:
+            type: string
+          cargo:
+            type: string
+          estacion_asignada:
+            type: integer
+          estacion_nombre:
+            type: string
+      token:
+        type: string
+      expires_in:
+        type: integer
+
+tags:
+  - name: auth
+    description: Autenticación y gestión de sesiones
+  - name: roles
+    description: Gestión de roles y permisos
+  - name: usuarios
+    description: Gestión de usuarios del sistema
+  - name: sistema
+    description: Endpoints del sistema y salud
+
+paths:
+  /ping:
+    get:
+      tags:
+        - sistema
+      summary: Verificar estado del servidor
+      security: []
+      responses:
+        '200':
+          description: Servidor operativo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "pong"
+
+
+
+

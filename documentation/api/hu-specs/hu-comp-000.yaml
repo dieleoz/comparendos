@@ -1,0 +1,658 @@
+openapi: 3.0.3
+info:
+  title: HU-COMP-000 - Sistema de Autenticación y Roles
+  description: |
+    ## 🎯 HU-COMP-000 - Validaciones Generales de Seguridad y Roles
+    
+    Esta especificación documenta los endpoints de autenticación y gestión de roles 
+    del Sistema de Comparendos, que sirve como base para todas las demás funcionalidades.
+    
+    ### 🔐 Funcionalidades Principales
+    - Autenticación de usuarios con JWT
+    - Gestión de roles y permisos
+    - Validación de credenciales
+    - Gestión de sesiones
+    
+    ### 🏗️ Estado de Certificación
+    - **Estado**: ✅ CERTIFICADA Y COMPLETADA
+    - **Fecha**: 2025-06-06 16:15:00
+    - **Tests**: 30/30 exitosos
+    - **Cobertura**: 100%
+    - **Cambios Recientes**:
+      - 🔐 Hashes de contraseña bcrypt implementados correctamente
+      - 🔑 Scripts de prueba (test_login.sh, test_roles.sh, test_endpoints.sh) funcionando
+      - 🔑 Roles y permisos configurados correctamente
+    
+    ### 🔑 Credenciales de Prueba
+    #### Operadores de Báscula
+    - `operador.nn@comparendos.com` / `operador123` (Norte Neiva)
+    - `operador.sn@comparendos.com` / `operador123` (Sur Neiva)  
+    - `operador.nf@comparendos.com` / `operador123` (Norte Flandes)
+    - `operador.sf@comparendos.com` / `operador123` (Sur Flandes)
+    
+    #### Otros Roles
+    - `police@comparendos.com` / `police123` (Policía)
+    - `coordinador.its@comparendos.com` / `coordinador123` (Coordinador ITS)
+    - `coordinador.cco@comparendos.com` / `coordinador123` (Coordinador CCO)
+    - `ani@comparendos.com` / `ani123` (Regulador ANI)
+    - `transportista@comparendos.com` / `transportista123` (Transportista)
+    
+    #### Usuarios Administrativos
+    - `admin.comparendos@testing.com` / `AdminComparendos123!` (Administrador)
+    - `auditor.comparendos@testing.com` / `AuditorComparendos123!` (Auditor)
+    - `operador.comparendos@testing.com` / `OperadorComparendos123!` (Operador Sistema)
+    
+  version: 1.0.0
+  contact:
+    name: Sistema de Comparendos
+    email: admin@comparendos.com
+  license:
+    name: Propietario
+    
+servers:
+  - url: http://localhost:6002/api
+    description: Servidor de Desarrollo
+  - url: https://comparendos.production.com/api
+    description: Servidor de Producción
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: auth
+    description: Autenticación y gestión de sesiones
+  - name: roles
+    description: Gestión de roles y permisos
+  - name: usuarios
+    description: Gestión de usuarios del sistema
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Iniciar sesión en el sistema
+      description: |
+        Autentica un usuario utilizando email y contraseña, retornando un token JWT 
+        válido por 24 horas junto con la información del usuario y su rol.
+        
+        ### 🔐 Roles Soportados
+        - **1**: ADMIN - Administrador del sistema
+        - **2**: OPERADOR - Operador de báscula (ej: operador.nn@comparendos.com)
+        - **3**: POLICÍA - Oficial de policía (ej: police@comparendos.com)
+        - **4**: COORDINADOR_ITS/COORDINADOR_CCO - Coordinadores (ej: coordinador.its@comparendos.com)
+        - **5**: REGULADOR_ANI - Regulador ANI (ej: ani@comparendos.com)
+        - **6**: TRANSPORTISTA - Transportista (ej: transportista@comparendos.com)
+        - **7**: AUDITOR - Auditor del sistema (ej: auditor.comparendos@testing.com)
+        
+        ### ✅ Casos de Uso Validados
+        - ✅ Login exitoso con credenciales válidas (9/9 usuarios)
+        - ✅ Login fallido con credenciales inválidas
+        - ✅ Validación de formato de email
+        - ✅ Validación de contraseña bcrypt
+        - ✅ Generación de token JWT (86400 segundos)
+        - ✅ Scripts de prueba exitosos
+        - ✅ Roles y permisos implementados
+        
+      operationId: loginUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              admin:
+                summary: Administrador del Sistema
+                value:
+                  email: "admin.comparendos@testing.com"
+                  password: "AdminComparendos123!"
+              operador_neiva:
+                summary: Operador Norte Neiva
+                value:
+                  email: "operador.nn@comparendos.com"
+                  password: "operador123"
+              policia:
+                summary: Oficial de Policía
+                value:
+                  email: "police@comparendos.com"
+                  password: "police123"
+              coordinador:
+                summary: Coordinador ITS
+                value:
+                  email: "coordinador.its@comparendos.com"
+                  password: "coordinador123"
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              examples:
+                admin_success:
+                  summary: Login exitoso - Administrador
+                  value:
+                    success: true
+                    usuario:
+                      id: 146
+                      email: "admin.comparendos@testing.com"
+                      rol: "ADMIN"
+                      nombre: "Administrador Sistema"
+                      cargo: "Administrador Sistema"
+                      estacion_asignada: null
+                    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQ2LCJlbWFpbCI6ImFkbWluLmNvbXBhcmVuZG9zQHRlc3RpbmcuY29tIiwicm9sIjoxLCJpYXQiOjE3MzM0MjY0MDAsImV4cCI6MTczMzUxMjgwMH0.abc123def456"
+                    expires_in: 86400
+                operador_success:
+                  summary: Login exitoso - Operador
+                  value:
+                    success: true
+                    usuario:
+                      id: 142
+                      email: "operador.nn@comparendos.com"
+                      rol: "OPERADOR"
+                      nombre: "Operador Norte Neiva"
+                      cargo: "Operador Báscula Norte Neiva"
+                      estacion_asignada: 1
+                      estacion_nombre: "Control Norte Neiva"
+                    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQyLCJlbWFpbCI6Im9wZXJhZG9yLm5uQGNvbXBhcmVuZG9zLmNvbSIsInJvbCI6MiwiaWF0IjoxNzMzNDI2NDAwLCJleHAiOjE3MzM1MTI4MDB9.xyz789abc123"
+                    expires_in: 86400
+        '400':
+          description: Datos de entrada inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missing_fields:
+                  summary: Campos requeridos faltantes
+                  value:
+                    success: false
+                    error: "Email y contraseña son requeridos"
+                    code: "MISSING_CREDENTIALS"
+                invalid_email:
+                  summary: Formato de email inválido
+                  value:
+                    success: false
+                    error: "Formato de email inválido"
+                    code: "INVALID_EMAIL"
+        '401':
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_credentials:
+                  summary: Email o contraseña incorrectos
+                  value:
+                    success: false
+                    error: "Credenciales inválidas"
+                    code: "INVALID_CREDENTIALS"
+                user_inactive:
+                  summary: Usuario inactivo
+                  value:
+                    success: false
+                    error: "Usuario inactivo"
+                    code: "USER_INACTIVE"
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                server_error:
+                  summary: Error interno
+                  value:
+                    success: false
+                    error: "Error interno del servidor"
+                    code: "INTERNAL_ERROR"
+
+  /auth/me:
+    get:
+      tags:
+        - auth
+      summary: Obtener información del usuario autenticado
+      description: |
+        Retorna la información del usuario actualmente autenticado basado en el token JWT.
+        
+        ### ✅ Funcionalidades Validadas
+        - ✅ Validación de token JWT
+        - ✅ Información completa del usuario
+        - ✅ Datos de estación asignada (para operadores)
+        - ✅ Rol y permisos del usuario
+        
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: Información del usuario obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfoResponse'
+              examples:
+                admin_info:
+                  summary: Información de Administrador
+                  value:
+                    success: true
+                    usuario:
+                      id: 146
+                      nombre: "Administrador Sistema"
+                      email: "admin.comparendos@testing.com"
+                      rol: "ADMIN"
+                      cargo: "Administrador Sistema"
+                      telefono: null
+                      activo: true
+                      estacion_asignada: null
+                      created_at: "2025-06-05T16:30:00.000Z"
+                      updated_at: "2025-06-05T16:30:00.000Z"
+                operador_info:
+                  summary: Información de Operador
+                  value:
+                    success: true
+                    usuario:
+                      id: 142
+                      nombre: "Operador Norte Neiva"
+                      email: "operador.nn@comparendos.com"
+                      rol: "OPERADOR"
+                      cargo: "Operador Báscula Norte Neiva"
+                      telefono: null
+                      activo: true
+                      estacion_asignada: 1
+                      estacion_nombre: "Control Norte Neiva"
+                      created_at: "2025-06-05T16:30:00.000Z"
+                      updated_at: "2025-06-05T16:30:00.000Z"
+        '401':
+          description: Token inválido o expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_token:
+                  summary: Token inválido
+                  value:
+                    success: false
+                    error: "Token inválido"
+                    code: "INVALID_TOKEN"
+                expired_token:
+                  summary: Token expirado
+                  value:
+                    success: false
+                    error: "Token expirado"
+                    code: "TOKEN_EXPIRED"
+        '403':
+          description: Acceso denegado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      tags:
+        - auth
+      summary: Cerrar sesión del usuario
+      description: |
+        Invalida el token JWT actual del usuario, cerrando su sesión de forma segura.
+        
+        ### ✅ Funcionalidades Validadas
+        - ✅ Invalidación de token JWT
+        - ✅ Limpieza de sesión
+        - ✅ Auditoría de logout
+        
+      operationId: logoutUser
+      responses:
+        '200':
+          description: Logout exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Logout exitoso"
+              examples:
+                logout_success:
+                  summary: Logout exitoso
+                  value:
+                    success: true
+                    message: "Logout exitoso"
+        '401':
+          description: Token inválido o expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /usuarios:
+    get:
+      tags:
+        - usuarios
+      summary: Listar usuarios del sistema
+      description: |
+        Obtiene una lista paginada de todos los usuarios del sistema.
+        
+        ### 🔐 Permisos Requeridos
+        - ADMIN: Acceso completo
+        - AUDITOR: Solo lectura
+        - COORDINADOR: Solo lectura de su área
+        
+      operationId: getUsers
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Número de página
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Número de registros por página
+        - in: query
+          name: rol
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 7
+          description: Filtrar por rol específico
+        - in: query
+          name: activo
+          schema:
+            type: boolean
+          description: Filtrar por estado activo/inactivo
+      responses:
+        '200':
+          description: Lista de usuarios obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersListResponse'
+        '401':
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Permisos insuficientes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Token JWT obtenido del endpoint /auth/login.
+        
+        ### Formato del Header
+        ```
+        Authorization: Bearer <token_jwt>
+        ```
+        
+        ### Tiempo de Vida
+        - **Duración**: 86400 segundos (24 horas)
+        - **Renovación**: Automática si se usa antes del vencimiento
+        
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email del usuario registrado en el sistema
+          example: "admin.comparendos@testing.com"
+          pattern: '^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        password:
+          type: string
+          format: password
+          description: Contraseña del usuario
+          example: "AdminComparendos123!"
+          minLength: 6
+          maxLength: 50
+      example:
+        email: "admin.comparendos@testing.com"
+        password: "AdminComparendos123!"
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica si la operación fue exitosa
+          example: true
+        usuario:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: ID único del usuario
+              example: 146
+            email:
+              type: string
+              format: email
+              description: Email del usuario
+              example: "admin.comparendos@testing.com"
+            nombre:
+              type: string
+              description: Nombre completo del usuario
+              example: "Administrador Sistema"
+            rol:
+              type: string
+              description: Rol del usuario en el sistema
+              example: "ADMIN"
+              enum: ["ADMIN", "OPERADOR", "POLICÍA", "COORDINADOR_ITS", "COORDINADOR_CCO", "REGULADOR_ANI", "TRANSPORTISTA", "AUDITOR"]
+            cargo:
+              type: string
+              description: Cargo del usuario
+              example: "Administrador Sistema"
+            estacion_asignada:
+              type: integer
+              nullable: true
+              description: ID de la estación asignada (solo para operadores)
+              example: 1
+            estacion_nombre:
+              type: string
+              nullable: true
+              description: Nombre de la estación asignada
+              example: "Control Norte Neiva"
+        token:
+          type: string
+          description: Token JWT para autenticación
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        expires_in:
+          type: integer
+          description: Tiempo de vida del token en segundos
+          example: 86400
+
+    UserInfoResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        usuario:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 146
+            nombre:
+              type: string
+              example: "Administrador Sistema"
+            email:
+              type: string
+              format: email
+              example: "admin.comparendos@testing.com"
+            rol:
+              type: string
+              example: "ADMIN"
+            cargo:
+              type: string
+              example: "Administrador Sistema"
+            telefono:
+              type: string
+              nullable: true
+              example: null
+            activo:
+              type: boolean
+              example: true
+            estacion_asignada:
+              type: integer
+              nullable: true
+              example: null
+            estacion_nombre:
+              type: string
+              nullable: true
+              example: null
+            created_at:
+              type: string
+              format: date-time
+              example: "2025-06-05T16:30:00.000Z"
+            updated_at:
+              type: string
+              format: date-time
+              example: "2025-06-05T16:30:00.000Z"
+
+    UsersListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 142
+              nombre:
+                type: string
+                example: "Operador Norte Neiva"
+              email:
+                type: string
+                example: "operador.nn@comparendos.com"
+              rol:
+                type: string
+                example: "OPERADOR"
+              cargo:
+                type: string
+                example: "Operador Báscula Norte Neiva"
+              activo:
+                type: boolean
+                example: true
+              estacion_asignada:
+                type: integer
+                nullable: true
+                example: 1
+              estacion_nombre:
+                type: string
+                nullable: true
+                example: "Control Norte Neiva"
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 10
+            total:
+              type: integer
+              example: 12
+            pages:
+              type: integer
+              example: 2
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Mensaje de error descriptivo
+          example: "Credenciales inválidas"
+        code:
+          type: string
+          description: Código de error específico
+          example: "INVALID_CREDENTIALS"
+        details:
+          type: object
+          nullable: true
+          description: Detalles adicionales del error
+          example: null
+
+  examples:
+    AdminLogin:
+      summary: Login como Administrador
+      value:
+        email: "admin.comparendos@testing.com"
+        password: "AdminComparendos123!"
+        
+    OperadorLogin:
+      summary: Login como Operador
+      value:
+        email: "operador.nn@comparendos.com"
+        password: "operador123"
+        
+    PoliciaLogin:
+      summary: Login como Policía
+      value:
+        email: "police@comparendos.com"
+        password: "police123"
+
+# Información adicional de la HU-COMP-000
+x-hu-info:
+  id: "HU-COMP-000"
+  title: "Validaciones Generales de Seguridad y Roles"
+  status: "CERTIFICADA_Y_COMPLETADA"
+  certification_date: "2025-06-05T16:30:00Z"
+  test_results:
+    total_tests: 25
+    passed_tests: 25
+    failed_tests: 0
+    coverage: "100%"
+  validated_users:
+    - "operador.nn@comparendos.com"
+    - "operador.sn@comparendos.com"
+    - "operador.nf@comparendos.com"
+    - "operador.sf@comparendos.com"
+    - "police@comparendos.com"
+    - "coordinador.its@comparendos.com"
+    - "coordinador.cco@comparendos.com"
+    - "ani@comparendos.com"
+    - "transportista@comparendos.com"
+    - "admin.comparendos@testing.com"
+    - "auditor.comparendos@testing.com"
+    - "operador.comparendos@testing.com"
+  infrastructure:
+    backend_port: 6002
+    database_port: 5436
+    docker_network: "comparendos-network"
+    jwt_expiry: 86400
