@@ -19,6 +19,20 @@ const Dashboard = ({ user, onLogout }) => {
     });
   };
 
+  // Validar que user existe antes de renderizar
+  if (!user) {
+    return (
+      <div className="dashboard-container">
+        <div style={{ textAlign: 'center', padding: '50px' }}>
+          <h2>Error: No se pudo cargar la información del usuario</h2>
+          <button className="logout-button" onClick={handleLogout}>
+            Volver al Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
@@ -38,17 +52,17 @@ const Dashboard = ({ user, onLogout }) => {
         <div style={{ background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
           <h2 style={{ color: '#333', marginTop: 0 }}>👤 Información del Usuario</h2>
           <div style={{ fontSize: '14px', lineHeight: '1.6' }}>
-            <p><strong>ID:</strong> {user.id || 'N/A'}</p>
-            <p><strong>Nombre:</strong> {user.nombre || 'N/A'}</p>
-            <p><strong>Email:</strong> {user.email || 'N/A'}</p>
-            <p><strong>Rol:</strong> {user.rol || 'N/A'}</p>
+            <p><strong>ID:</strong> {user?.id || 'N/A'}</p>
+            <p><strong>Nombre:</strong> {user?.nombre || 'N/A'}</p>
+            <p><strong>Email:</strong> {user?.email || 'N/A'}</p>
+            <p><strong>Rol:</strong> {user?.rol || 'N/A'}</p>
             <p><strong>Estado:</strong> 
               <span style={{ 
-                color: user.activo ? '#28a745' : '#dc3545',
+                color: user?.activo ? '#28a745' : '#dc3545',
                 fontWeight: 'bold',
                 marginLeft: '5px'
               }}>
-                {user.activo ? '✅ Activo' : '❌ Inactivo'}
+                {user?.activo ? '✅ Activo' : '❌ Inactivo'}
               </span>
             </p>
           </div>
@@ -58,9 +72,9 @@ const Dashboard = ({ user, onLogout }) => {
         <div style={{ background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
           <h2 style={{ color: '#333', marginTop: 0 }}>🔐 Información de la Sesión</h2>
           <div style={{ fontSize: '14px', lineHeight: '1.6' }}>
-            <p><strong>Último Login:</strong> {formatDateTime(user.ultimo_login)}</p>
-            <p><strong>Fecha Creación:</strong> {formatDateTime(user.fecha_creacion)}</p>
-            <p><strong>Fecha Actualización:</strong> {formatDateTime(user.fecha_actualizacion)}</p>
+            <p><strong>Último Login:</strong> {formatDateTime(user?.ultimo_login)}</p>
+            <p><strong>Fecha Creación:</strong> {formatDateTime(user?.fecha_creacion)}</p>
+            <p><strong>Fecha Actualización:</strong> {formatDateTime(user?.fecha_actualizacion)}</p>
             <p><strong>Token Válido:</strong> 
               <span style={{ color: '#28a745', fontWeight: 'bold', marginLeft: '5px' }}>
                 ✅ Sí

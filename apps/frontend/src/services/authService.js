@@ -46,19 +46,26 @@ export const authService = {
   login: async (email, password) => {
     try {
       const response = await api.post('/auth/login', {
-        email: email,  // Corregido: enviar 'email' para coincidir con la nueva API
+        email: email,  
         password,
       });
       
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        localStorage.setItem('user', JSON.stringify(response.data.usuario));
       }
       
       return response.data;
     } catch (error) {
+      console.error('Error en login:', error);
+      console.error('Response:', error.response);
+      console.error('Status:', error.response?.status);
+      console.error('Data:', error.response?.data);
+      console.error('Message:', error.response?.data?.message);
+      
       throw new Error(
-        error.response?.data?.message || 'Error al iniciar sesión'
+        error.response?.data?.message || 
+        `Error ${error.response?.status || 'desconocido'}: ${error.message}`
       );
     }
   },

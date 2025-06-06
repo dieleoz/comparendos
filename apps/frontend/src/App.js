@@ -14,9 +14,11 @@ function App() {
       if (authService.isAuthenticated()) {
         try {
           const userData = await authService.getCurrentUser();
-          setUser(userData.user);
+          console.log('User data from API:', userData); // Debug log
+          setUser(userData.user || userData.usuario); // Intentar ambas estructuras
           setIsAuthenticated(true);
         } catch (error) {
+          console.error('Error getting current user:', error); // Debug log
           // Si hay error, limpiar la sesión
           authService.logout();
           setIsAuthenticated(false);
@@ -30,7 +32,8 @@ function App() {
   }, []);
 
   const handleLoginSuccess = (response) => {
-    setUser(response.user);
+    console.log('Login response:', response); // Debug log
+    setUser(response.usuario || response.user); // Intentar ambas estructuras
     setIsAuthenticated(true);
   };
 

@@ -84,7 +84,7 @@ const LoginForm = ({ onLoginSuccess }) => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <label htmlFor="email" className="form-label">
               Usuario (Email)
@@ -119,34 +119,39 @@ const LoginForm = ({ onLoginSuccess }) => {
             />
           </div>
 
-          <button
-            type="submit"
-            className="login-button"
-            disabled={loading}
-          >
-            {loading ? 'Iniciando sesión...' : 'LOGIN'}
-          </button>
-        </form>
-
-        <div className="credentials-section">
-          <h3 className="credentials-title">🔑 Credenciales de Prueba</h3>
-          {testCredentials.map((credential, index) => (
-            <div
-              key={index}
-              className="credential-item"
-              onClick={() => fillCredentials(credential)}
-              style={{ cursor: 'pointer' }}
-              title="Click para usar estas credenciales"
+          <div className="form-group">
+            <button
+              type="submit"
+              className="login-button"
+              disabled={loading}
             >
-              <div className="credential-role">{credential.role}</div>
-              <div className="credential-email">📧 {credential.email}</div>
-              <div className="credential-password">🔒 {credential.password}</div>
-            </div>
-          ))}
-          <p style={{ fontSize: '12px', color: '#666', textAlign: 'center', marginTop: '10px' }}>
-            💡 Haz click en cualquier credencial para usarla automáticamente
-          </p>
-        </div>
+              {loading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  Iniciando sesión...
+                </>
+              ) : (
+                'Iniciar Sesión'
+              )}
+            </button>
+          </div>
+
+          <div className="test-credentials">
+            <h3>Credenciales de Prueba</h3>
+            {testCredentials.map((cred, index) => (
+              <div key={index} className="credential-item">
+                <button
+                  type="button"
+                  onClick={() => fillCredentials(cred)}
+                  className="credential-button"
+                  disabled={loading}
+                >
+                  {cred.role}
+                </button>
+              </div>
+            ))}
+          </div>
+        </form>
       </div>
     </div>
   );

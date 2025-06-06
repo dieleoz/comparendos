@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const bcryptjs = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 const { pool } = require('../db');
 
 const authController = {
@@ -22,7 +22,29 @@ const authController = {
                 });
             }
             
+            // Verificar el tipo del body completo
+            console.log('=== BODY TYPE CHECK ===');
+            console.log('Body type:', typeof req.body);
+            console.log('Body raw:', JSON.stringify(req.body));
+            
+            // Verificar si el body es un objeto
+            if (typeof req.body !== 'object' || req.body === null) {
+                console.error('❌ Body is not a valid object');
+                console.error('Body type:', typeof req.body);
+                console.error('Body value:', req.body);
+                return res.status(400).json({
+                    success: false,
+                    message: 'Body de la solicitud debe ser un objeto válido'
+                });
+            }
+            
             const { email, password } = req.body;
+            
+            // Verificar el tipo de cada propiedad antes de la desestructuración
+            console.log('=== PROPERTY TYPE CHECK ===');
+            console.log('Email type:', typeof req.body.email);
+            console.log('Password type:', typeof req.body.password);
+            
             console.log('Extracted email:', email);
             console.log('Extracted password:', password ? '***' : 'undefined');
             console.log('Password type:', typeof password);
@@ -99,42 +121,47 @@ const authController = {
             console.log('Hash type:', typeof userData.password_hash);
             console.log('Hash length:', userData.password_hash ? userData.password_hash.length : 'null');
             
-            // Verificar si los datos son strings
-            if (typeof password !== 'string' || typeof userData.password_hash !== 'string') {
-                console.error('❌ One of the values is not a string!');
-                console.error('Password is string:', typeof password === 'string');
-                console.error('Hash is string:', typeof userData.password_hash === 'string');
-                console.error('Password value:', password);
-                console.error('Hash value:', userData.password_hash);
-                throw new Error('Both password and hash must be strings');
+            // Asegurar que tanto password como hash sean strings
+            const passwordStr = String(password);
+            const hashStr = String(userData.password_hash);
+            
+            console.log('=== CONVERTED VALUES ===');
+            console.log('Password string:', passwordStr);
+            console.log('Password string type:', typeof passwordStr);
+            console.log('Hash string:', hashStr);
+            console.log('Hash string type:', typeof hashStr);
+            console.log('Password string length:', passwordStr.length);
+            console.log('Hash string length:', hashStr.length);
+            
+            // Verificación adicional de tipos antes de bcrypt.compare
+            if (typeof passwordStr !== 'string') {
+                throw new Error(`Password is not a string: ${typeof passwordStr}`);
+            }
+            if (typeof hashStr !== 'string') {
+                throw new Error(`Hash is not a string: ${typeof hashStr}`);
             }
             
-            // Verificar si el hash es válido
-            if (!userData.password_hash.startsWith('$2b$')) {
-                console.error('❌ Invalid hash format!');
-                console.error('Hash:', userData.password_hash);
-                throw new Error('Invalid hash format');
-            }
+            console.log('=== ABOUT TO CALL BCRYPT.COMPARE ===');
+            console.log('bcrypt.compare arguments:');
+            console.log('  arg1 (password):', passwordStr);
+            console.log('  arg1 type:', typeof passwordStr);
+            console.log('  arg1 constructor:', passwordStr.constructor.name);
+            console.log('  arg2 (hash):', hashStr);
+            console.log('  arg2 type:', typeof hashStr);
+            console.log('  arg2 constructor:', hashStr.constructor.name);
             
-            console.log('About to call bcryptjs.compare...');
+            // Verificación extrema de tipos
+            console.log('  arg1 === string?', passwordStr === String(passwordStr));
+            console.log('  arg2 === string?', hashStr === String(hashStr));
+            console.log('  arg1 JSON:', JSON.stringify(passwordStr));
+            console.log('  arg2 JSON:', JSON.stringify(hashStr));
             
-            // Asegurarse de que los datos son strings
-            // Verificar si la contraseña es correcta según las credenciales de prueba
-            const correctPassword = password === 'operador123';
+            // Verificar la contraseña usando bcrypt
+            const validPassword = await bcrypt.compare(passwordStr, hashStr);
             
             console.log('=== PASSWORD VERIFICATION ===');
             console.log('Provided password:', password);
-            console.log('Is correct password:', correctPassword);
-            
-            if (!correctPassword) {
-                console.log('=== INVALID PASSWORD ===');
-                return res.status(401).json({ 
-                    success: false, 
-                    message: 'Credenciales inválidas' 
-                });
-            }
-            console.log('=== BCRYPT RESULT ===');
-            console.log('Password validation:', validPassword);
+            console.log('Is password valid:', validPassword);
             
             if (!validPassword) {
                 console.log('=== INVALID PASSWORD ===');

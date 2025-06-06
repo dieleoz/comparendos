@@ -1,0 +1,21 @@
+{
+  "name": "hu-comp-000-tests",
+  "version": "1.0.0",
+  "description": "Test suite for HU-COMP-000 - Authentication and Security Validations",
+  "main": "test_login_api.js",
+  "scripts": {
+    "test": "node test_login_api.js",
+    "test:login": "node test_login_api.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.2"
+  },
+  "keywords": [
+    "testing",
+    "authentication", 
+    "hu-comp-000",
+    "comparendos"
+  ],
+  "author": "Sistema de Comparendos - Team Dev",
+  "license": "ISC"
+}

@@ -2,95 +2,44 @@
 
 Sistema integral de gestión de comparendos para el control y administración de infracciones de tránsito.
 
-## 🎯 Estado Actual del Sistema (6 de Junio 2025)
+## 🎯 Estado Actual (6 de Junio 2025)
 
 ### 🌐 URLs de Acceso
+- **Frontend**: http://localhost:60005
 - **API Backend**: http://localhost:6002
 - **Swagger UI**: http://localhost:6002/api-docs
-- **Swagger JSON**: http://localhost:6002/api-docs.json
-- **Frontend**: http://localhost:3000 (Desarrollo) / http://localhost:60005 (Producción)
 - **Base de Datos**: localhost:5436
 
-### 🎉 Frontend HU-COMP-000 Completado
+### 🚀 Configuración del Sistema
 
-✅ **Frontend de Login Implementado y Funcional**
-
-El frontend para probar la HU-COMP-000 (Validaciones Generales de Seguridad y Roles) está completamente implementado con las siguientes características:
-
-#### 🚀 Características del Frontend
-- **Formulario de Login Moderno**: Interfaz elegante con gradientes y animaciones
-- **Credenciales de Prueba Integradas**: Todas las credenciales aparecen en la interfaz para fácil testing
-- **Dashboard Post-Login**: Muestra información completa del usuario autenticado
-- **Diseño Responsivo**: Funciona perfectamente en móviles y desktop
-- **Manejo de Errores**: Mensajes claros para errores de autenticación
-- **Estados de Carga**: Indicadores visuales durante las operaciones
-
-#### 🔑 Credenciales Clickeables en la Interfaz
-El frontend incluye un panel con todas las credenciales de prueba que se pueden usar con un solo click:
-- Operador Norte Neiva
-- Operador Sur Neiva  
-- Policía
-- Coordinador ITS
-- Regulador ANI
-
-#### 🏃‍♂️ Ejecutar el Frontend
-```bash
-cd /home/administrador/docker/comparendos/apps/frontend
-npm install
-npm start
-```
-
-Acceso: http://localhost:3000
-
-### 📡 Configuración de Red
+#### 🔐 Configuración Crítica
 - **Red Docker**: `comparendos-network` (bridge)
-- **Puerto Base de Datos**: 5436 (mapeado a 5432 en el contenedor)
+- **Puertos**: 6002 (Backend), 60005 (Frontend), 5436 (Base de Datos)
+- **Base de Datos**: PostgreSQL 15
+  - Usuario: comparendos_user
+  - Contraseña: comparendos_pass
+  - Nombre: comparendos_db
 
-### ⚠️ ADVERTENCIA IMPORTANTE
-**¡NO CAMBIAR LOS SIGUIENTES PUERTOS!**
+#### 🛠️ Autenticación
+- **JWT**: Duración 24 horas
+- **Roles**: ADMIN, OPERADOR, POLICÍA, COORDINADOR_ITS, COORDINADOR_CCO, REGULADOR_ANI, AUDITOR, TRANSPORTISTA
 
-### 🔐 Configuración Crítica de la Base de Datos
+### 🛠️ Frontend
 
-#### Proceso de Certificación
-1. **Recolección de Insumos**
-   - Verificar roles y permisos en base de datos
-   - Documentar endpoints existentes
-   - Recopilar credenciales de prueba
+#### 🚀 Características
+- **Framework**: React 18.2.0 + React Router 6.3.0
+- **Interfaz**: Moderna y responsive
+- **Seguridad**: Credenciales integradas
+- **UX**: Dashboard post-login
+- **Feedback**: Manejo de errores y estados de carga
 
-2. **Desarrollo de Tests**
-   - Crear scripts de prueba
-   - Documentar casos de uso
-   - Especificar validaciones
+#### 🏃‍♂️ Instrucciones
+```bash
+# Iniciar frontend (producción)
+docker compose up -d comparendos-frontend
 
-3. **Documentación**
-   - Actualizar Swagger
-   - Crear documentación técnica
-   - Registrar resultados de tests
-
-4. **Certificación**
-
-### 🔑 Credenciales de Prueba
-
-#### Operadores de Báscula
-- **Norte Neiva**: operador.nn@comparendos.com / operador123
-- **Sur Neiva**: operador.sn@comparendos.com / operador123
-- **Norte Flandes**: operador.nf@comparendos.com / operador123
-- **Sur Flandes**: operador.sf@comparendos.com / operador123
-
-#### Otros Roles
-- **Policía**: police@comparendos.com / police123
-- **Coordinador ITS**: coordinador.its@comparendos.com / coordinador123
-- **Coordinador CCO**: coordinador.cco@comparendos.com / coordinador123
-- **Regulador ANI**: ani@comparendos.com / ani123
-- **Transportista**: transportista@comparendos.com / transportista123
-
-**Nota**: Estas credenciales son para uso de prueba y solo deben ser utilizadas en el entorno de desarrollo.
-   - Ejecutar tests completos
-   - Documentar resultados
-   - Actualizar estado de certificación
-
-### 🔐 Configuración Crítica de la Base de Datos
-- **Nombre de Usuario**: comparendos_user
+# Acceder: http://localhost:60005
+```
 - **Contraseña**: comparendos_pass
 - **Nombre de Base de Datos**: comparendos_db
 - **Puerto Interno**: 5432
@@ -124,58 +73,23 @@ tests/
 │       └── certificacion-hu-comp-000.md
 ```
 
-#### Rutas API Disponibles
+### 📝 Endpoints API
 
-#### Autenticación
+#### 🔐 Autenticación
 - POST `/api/auth/login` - Iniciar sesión
 - GET `/api/auth/me` - Obtener información del usuario
-- POST `/api/auth/logout` - Cerrar sesión
 
-#### Comparendos
-- GET `/api/comparendos` - Listar comparendos
-- GET `/api/comparendos/placa/:placa` - Comparendos por placa
-- POST `/api/comparendos` - Crear comparendo
-- PUT `/api/comparendos/:id` - Actualizar comparendo
-- DELETE `/api/comparendos/:id` - Eliminar comparendo
-- POST `/api/comparendos/carga-excel` - Cargar comparendos desde Excel
-- POST `/api/comparendos/carga-json` - Cargar comparendos desde JSON
+#### 📊 Usuarios
+- GET `/api/usuarios` - Listar usuarios
+- POST `/api/usuarios` - Crear usuario
+- PUT `/api/usuarios/:id` - Actualizar usuario
+- DELETE `/api/usuarios/:id` - Eliminar usuario
 
-#### Vehículos
-- GET `/api/vehiculos` - Listar vehículos
-- GET `/api/vehiculos/placa/:placa` - Buscar vehículo por placa
-- POST `/api/vehiculos` - Crear vehículo
-- PUT `/api/vehiculos/:id` - Actualizar vehículo
-- DELETE `/api/vehiculos/:id` - Eliminar vehículo
-
-#### Historial
-- GET `/api/historico` - Listar historial
-- GET `/api/historico/placa/:placa` - Historial por placa
-- POST `/api/historico/corregir` - Corregir registro
-- POST `/api/historico/exportar` - Exportar datos
-- POST `/api/historico/consolidar` - Consolidar datos
-
-#### Pasos
-- GET `/api/pasos` - Listar pasos
-- GET `/api/pasos/placa/:placa` - Pasos por placa
-- POST `/api/pasos` - Registrar paso
-- PUT `/api/pasos/:id` - Actualizar paso
-
-#### Exclusiones
-- GET `/api/exclusiones` - Listar exclusiones
-- POST `/api/exclusiones` - Crear exclusión
-- PUT `/api/exclusiones/:id` - Actualizar exclusión
-- DELETE `/api/exclusiones/:id` - Eliminar exclusión
-- POST `/api/exclusiones/revertir` - Revertir exclusión
-
-#### Peajes
-- GET `/api/peajes` - Listar peajes
-- POST `/api/peajes` - Crear peaje
-- PUT `/api/peajes/:id` - Actualizar peaje
-- DELETE `/api/peajes/:id` - Eliminar peaje
-
-#### Sistema
+#### 🔍 Estado del Sistema
 - GET `/api/ping` - Verificar estado del servidor
 - GET `/api/health` - Estado de salud del sistema
+
+**Nota**: Las rutas de comparendos, vehículos y otros módulos están en desarrollo y serán implementadas en futuras versiones.
 
 ## 🚀 Inicio Rápido con Docker
 
@@ -183,7 +97,7 @@ tests/
 - Docker Engine 20.10+
 - Docker Compose 2.0+
 - Mínimo 4GB RAM disponible
-- Puertos libres: 3000, 6002, 60005, 5436
+- Puertos libres: 6002, 60005, 5436
 
 ### 🎯 Comandos Principales
 
@@ -201,19 +115,36 @@ docker compose logs -f
 
 #### 🛠️ Desarrollo Frontend
 ```bash
-# Modo desarrollo con hot reload (puerto 3000)
+# Modo desarrollo con hot reload (puerto 6000)
 docker compose --profile development up comparendos-frontend-dev
 
 # Modo producción (puerto 60005)
 docker compose up comparendos-frontend
 ```
 
+**Configuración de Desarrollo**:
+- **Volumenes**:
+  - `frontend_dev_node_modules:/app/node_modules` (node_modules persistente)
+  - `src` y `public` montados para hot reload
+- **Variables de Entorno**:
+  - `REACT_APP_API_URL=http://localhost:6002`
+  - `NODE_ENV=development`
+  - `CHOKIDAR_USEPOLLING=true`
+- **Dependencias**: El frontend depende del backend para funcionar
+
 #### 📱 URLs de Acceso Después del Deploy
-- **🎨 Frontend Desarrollo**: http://localhost:3000 (Hot reload, ideal para desarrollar)
-- **🚀 Frontend Producción**: http://localhost:60005 (Nginx optimizado)
-- **📡 API Backend**: http://localhost:6002
-- **📚 Swagger UI**: http://localhost:6002/api-docs
-- **🗄️ Base de Datos**: localhost:5436
+
+**Desarrollo Local (HTTP)**:
+- **🎨 Frontend**: http://localhost:6000
+- **📡 API**: http://localhost:6002
+- **📚 Swagger**: http://localhost:6002/api-docs
+
+**Producción/Pruebas (HTTPS)**:
+- **🎨 Frontend**: https://comparendos.autovia360.cc
+- **📡 API**: https://comparendos.autovia360.cc/api
+- **📚 Swagger**: https://comparendos.autovia360.cc/api-docs
+
+**Nota**: En producción, el frontend se conecta a través de HTTPS al servidor de pruebas.
 
 ### 🔄 Gestión de Servicios
 
